@@ -26,10 +26,10 @@ rm token
 # Password: password
 URL="https://localhost:9000"
 APP="javaspringvulny-api"
-nightvision app create -n $APP
-nightvision target create -n $APP -u $URL --type api
+nightvision app create $APP
+nightvision target create $APP $URL --type API
 # Start the application
-docker-compose up -d; sleep 10
+docker compose up -d; sleep 10
 # Record authentication - click on Form Auth
 echo "Click on Form Auth and use these credentials: "
 echo "\tUsername: user"
