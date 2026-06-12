@@ -1,0 +1,22 @@
+# Python bytecode / caches (sarif/ converters)
+__pycache__/
+*.py[cod]
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+
+# Local checkout the demo scripts clone into, plus any scan artifacts
+# (openapi-spec.yml, scan-results.txt, results.sarif) written inside it.
+/java-github-actions-demo/
+
+# Agent sandbox state: local tooling, never part of the repo.
+.agent-sandbox-config/
+
+# Local analysis / work products, kept out of version control by convention.
+analysis/
