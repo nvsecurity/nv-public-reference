@@ -1,86 +1,28 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
+"""DEPRECATED: NightVision emits GitLab DAST reports natively now.
 
-import json
-from datetime import datetime
+This SARIF-to-GitLab converter has been retired. It mislabeled DAST findings as
+SAST and used unstable rule ids as the vulnerability id, so GitLab could not
+deduplicate findings across pipelines. Use the NightVision CLI's built-in command
+instead, which produces a correctly categorized DAST report with a stable
+per-finding fingerprint (so GitLab tracks findings across pipelines), NightVision
+branding, and real scan times:
 
+    nightvision export gitlab -s <scan-id> [--swagger-file <spec>] -o gl-dast-report.json
 
-def sarif_to_gitlab(sarif_file, output_file):
-    # Load SARIF data
-    with open(sarif_file, 'r') as file:
-        sarif_data = json.load(file)
+Upload it in .gitlab-ci.yml as a DAST report:
 
-    # Initialize GitLab report structure
-    gitlab_report = {
-        "version": "15.0.0",
-        "vulnerabilities": [],
-        "remediations": [],
-        "scan": {
-            "scanner": {
-                "id": "custom_sarif_import",
-                "name": "Custom SARIF Importer",
-                "version": "1.0",
-                "vendor": {
-                    "name": "Custom Vendor"  # Updated to be an object
-                }
-            },
-            "analyzer": {
-                "name": "Custom Analyzer",
-                "version": "1.0",
-                "id": "custom_analyzer",  # Example ID, adjust as needed
-                "vendor": {
-                    "name": "Custom Analyzer Vendor"  # Example vendor, adjust as needed
-                }
-            },
-            "start_time": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-            "end_time": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-            "status": "success",
-            "type": "sast"
-        }
-    }
+    artifacts:
+      reports:
+        dast: gl-dast-report.json
 
-    # Map SARIF data to GitLab format
-    for run in sarif_data.get("runs", []):
-        for result in run.get("results", []):
-            vulnerability = {
-                "id": result.get("ruleId"),
-                "category": "sast",
-                "name": result.get("message", {}).get("text"),
-                "message": result.get("message", {}).get("text"),
-                "description": result.get("message", {}).get("text"),
-                "severity": map_severity(result.get("properties", {}).get("nightvision-risk")),  # Mapping function to ensure correct severity
-                "confidence": result.get("properties", {}).get("nightvision-confidence"),
-                "solution": "Please refer to the rule documentation.",
-                "scanner": gitlab_report["scan"]["scanner"],
-                "identifiers": [{"type": "cve", "name": result.get("ruleId"), "value": result.get("ruleId")}],
-                "location": {
-                    "file": result.get("locations", [{}])[0].get("physicalLocation", {}).get("artifactLocation", {}).get("uri"),
-                }
-            }
-            # Conditionally add start and end lines if they are numbers
-            if isinstance(result.get("locations", [{}])[0].get("physicalLocation", {}).get("region", {}).get("startLine"), int):
-                vulnerability["location"]["start_line"] = result.get("locations", [{}])[0].get("physicalLocation", {}).get("region", {}).get("startLine")
-            if isinstance(result.get("locations", [{}])[0].get("physicalLocation", {}).get("region", {}).get("endLine"), int):
-                vulnerability["location"]["end_line"] = result.get("locations", [{}])[0].get("physicalLocation", {}).get("region", {}).get("endLine")
+See the GitLab integration docs and the nightvision-skills ci-cd-integration
+guide for the full pipeline. This stub remains only to give a clear migration
+message to any pipeline still fetching this script; it does not convert anything.
+"""
 
-            gitlab_report["vulnerabilities"].append(vulnerability)
+import sys
 
-    # Write GitLab report to file
-    with open(output_file, 'w') as file:
-        json.dump(gitlab_report, file, indent=4)
-
-
-def map_severity(sarif_severity):
-    """Map SARIF severity to GitLab severity levels."""
-    severity_mapping = {
-        "CRITICAL": "Critical",
-        "HIGH": "High",
-        "MEDIUM": "Medium",
-        "LOW": "Low",
-        "INFO": "Info",
-    }
-    return severity_mapping.get(sarif_severity, "Unknown")
-
-
-if __name__ == '__main__':
-    # Example usage
-    sarif_to_gitlab('results.sarif', 'gitlab_security_report.json')
+if __name__ == "__main__":
+    sys.stderr.write(__doc__)
+    sys.exit(2)
